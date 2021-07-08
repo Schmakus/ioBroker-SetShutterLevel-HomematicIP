@@ -1,0 +1,93 @@
+const version = `v0.1`
+const scriptname = `ioBroker-SetShutterLevel-HomematicIP`
+const constri = `Schmakus`
+
+//------------------------------------------//
+//    Allgemine Werte definieren            //
+//------------------------------------------//
+const statesPath = "0_userdata.0.Rollladensteuerung."  //Grundpfad für Script Datenpunkte.
+const logging = true                                // Logging Ein/Aus
+
+//------------------------------------------//
+//    Parameter erstellen                 //
+//------------------------------------------//
+let arrShutters = [
+    {
+        name: 'Küche',
+        pathParameter: 'hm-rpc.1.00165A49924753.6.COMBINED_PARAMETER',
+            0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
+            100: [100,101],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            95:  [0,30],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
+            90:  [0,60],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
+            85:  [0,90],    //Jalousien komplett geschlossen, Lamellen Sichtschutz     
+        }
+    },
+    {
+        name: 'Essen_Süd',
+        pathParameter: 'hm-rpc.1.00165A49924753.10.COMBINED_PARAMETER',
+        positions: {
+            0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
+            100: [100,101],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            95:  [0,30],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
+            90:  [0,60],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
+            85:  [0,90],    //Jalousien komplett geschlossen, Lamellen Sichtschutz     
+        }
+    },
+    {
+        name: 'Essen_West',
+        pathParameter: 'hm-rpc.1.00165A49924753.14.COMBINED_PARAMETER',
+        positions: {
+            0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
+            100: [100,101],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            95:  [0,30],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
+            90:  [0,60],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
+            85:  [0,90],    //Jalousien komplett geschlossen, Lamellen Sichtschutz     
+        }
+    },
+]
+
+//------------------------------------------//
+//    AB HIER NICHTS MEHR ÄNDERN            //
+//------------------------------------------//
+
+//******* Logeintrag mit Scriptnamen, Version und Developer */
+console.log(`${scriptname} ${version} ${constri}`);
+
+//******* State Datenpunkt für jede Jalousie erstellen */
+let dpCount = 0;        //Zähler
+let customStates = [];  //Array mit anzulegenden Dps
+for (const i in arrShutters) {
+    customStates[dpCount] = {id: statesPath + arrShutters[i].name + '.' + 'State', init: 100, forceCreation: false, json: { read: true, write: true, name: arrShutters[i].name, type: "number", role: "state", desc: "Datenpunkt für ShutterControl", def: 0, min: 0, max: 100 }};
+    dpCount++;
+}
+let numStates = customStates.length;
+
+customStates.forEach(function (state) {
+    createStateAsync(state.id, state.init, state.forceCreation, state.json, function () {
+        numStates--;
+        if (numStates === 0) {
+            if (logging) console.log(`${scriptname}: CreateStates fertig!`);
+            CreateTrigger(arrShutters)
+        };
+    });
+});
+
+//******* Trigger erstellen */
+async function CreateTrigger(arrShutters) {
+
+    arrShutters.forEach(function async(objTemp) {
+        on({id: statesPath + objTemp.name + '.State', change: "any"}, async function (obj) {
+            let state = obj.state.val
+            if (logging) console.log(`${scriptname}: Set state for Shutter: ${objTemp.name} from ShutterControl: ${state}`)
+            if (logging) console.log(`${scriptname}: Set level for Shutter: ${objTemp.name}: ${objTemp.positions[state][0]}`)
+            if (logging) console.log(`${scriptname}: Set blind for Shutter: ${objTemp.name}: ${objTemp.positions[state][1]}`)
+            SetShutter(objTemp.pathParameter, objTemp.positions[state])
+        });
+        if (logging) console.log(`${scriptname}: Trigger erstellt für: ${objTemp.name}`)        
+    })
+}
+
+//******* Homematic Parameter setzen */
+async function SetShutter(path, parameter) {
+    setStateAsync(path, `L=${parameter[0]},L2=${parameter[1]}`)
+}
