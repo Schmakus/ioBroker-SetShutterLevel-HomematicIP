@@ -5,44 +5,48 @@ const constri = `Schmakus`
 //------------------------------------------//
 //    Allgemine Werte definieren            //
 //------------------------------------------//
-const statesPath = "0_userdata.0.Rollladensteuerung."  //Grundpfad für Script Datenpunkte.
-const logging = true                                // Logging Ein/Aus
+const statesPath = "0_userdata.0.Rollladensteuerung."   //Grundpfad für Script Datenpunkte. (Achtung: Punkt am Ende!!)
+const logging = true                                    // Logging Ein/Aus
 
 //------------------------------------------//
 //    Parameter erstellen                 //
 //------------------------------------------//
 let arrShutters = [
     {
-        name: 'Küche',
-        pathParameter: 'hm-rpc.1.00165A49924753.6.COMBINED_PARAMETER',
+        name: 'Küche',       //Bezeichnung und Name des Ordners
+        pathParameter: 'hm-rpc.1.00165A49924753.6.COMBINED_PARAMETER', //Datenpunkt des COMBINED_PARAMETER der Jalousie
+        positions: {
             0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
-            100: [100,101],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,30],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
             90:  [0,60],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             85:  [0,90],    //Jalousien komplett geschlossen, Lamellen Sichtschutz     
-        }
+        },
+        default: [0,0]      //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
     },
     {
         name: 'Essen_Süd',
         pathParameter: 'hm-rpc.1.00165A49924753.10.COMBINED_PARAMETER',
         positions: {
             0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
-            100: [100,101],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,30],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
             90:  [0,60],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             85:  [0,90],    //Jalousien komplett geschlossen, Lamellen Sichtschutz     
-        }
+        },
+        default: [0,0]      //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
     },
     {
         name: 'Essen_West',
         pathParameter: 'hm-rpc.1.00165A49924753.14.COMBINED_PARAMETER',
         positions: {
             0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
-            100: [100,101],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,30],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
             90:  [0,60],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             85:  [0,90],    //Jalousien komplett geschlossen, Lamellen Sichtschutz     
-        }
+        },
+        default: [0,0]      //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
     },
 ]
 
@@ -79,9 +83,26 @@ async function CreateTrigger(arrShutters) {
         on({id: statesPath + objTemp.name + '.State', change: "any"}, async function (obj) {
             let state = obj.state.val
             if (logging) console.log(`${scriptname}: Set state for Shutter: ${objTemp.name} from ShutterControl: ${state}`)
-            if (logging) console.log(`${scriptname}: Set level for Shutter: ${objTemp.name}: ${objTemp.positions[state][0]}`)
-            if (logging) console.log(`${scriptname}: Set blind for Shutter: ${objTemp.name}: ${objTemp.positions[state][1]}`)
-            SetShutter(objTemp.pathParameter, objTemp.positions[state])
+
+            //Check, if position exits
+            let found = false;
+            for(const i in objTemp.positions) {
+                if (i == state) {
+                    found = true
+                    break
+                }
+            }
+
+            if(found) {
+                if (logging) console.log(`${scriptname}: Set level for Shutter: ${objTemp.name}: ${objTemp.positions[state][0]}`)
+                if (logging) console.log(`${scriptname}: Set blind for Shutter: ${objTemp.name}: ${objTemp.positions[state][1]}`)
+                SetShutter(objTemp.pathParameter, objTemp.positions[state])
+            } else {
+                if (logging) console.warn(`${scriptname}: Set default-level for Shutter: ${objTemp.name}: ${objTemp.default[0]}`)
+                if (logging) console.warn(`${scriptname}: Set default-blind for Shutter: ${objTemp.name}: ${objTemp.default[1]}`)
+                SetShutter(objTemp.pathParameter, objTemp.default)
+            }
+
         });
         if (logging) console.log(`${scriptname}: Trigger erstellt für: ${objTemp.name}`)        
     })
