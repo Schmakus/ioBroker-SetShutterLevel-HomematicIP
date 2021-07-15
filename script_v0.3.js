@@ -106,7 +106,9 @@ customStates.forEach(function (state) {
     });
 });
 
-//******* Trigger erstellen */
+/* ******* Trigger erstellen *******
+ * @param {array} arrShutters Enthält die Informationen und Parameter jeder Jalousie
+*/
 async function CreateTrigger(arrShutters) {
     arrShutters.forEach(function async(objTemp) {
 
@@ -174,19 +176,26 @@ async function CreateTrigger(arrShutters) {
     })
 }
 
-//******* Homematic Parameter setzen */
+/******* Homematic Parameter setzen *******
+* @param {object} objTemp Alle Parameter des jeweils ausgelösten Triggers und der dazugehörigen Jalousie
+*/
 function SetShutter(objTemp) {
     if (logging) console.log(`${scriptname}: ${objTemp.name} // Set level for Shutter/Blind:  ${objTemp.parameter}`)
     setStateAsync(objTemp.pathParameter, objTemp.parameter)
 }
 
-//******* Lamellen komplett schließen  */
+/******* Lamellen komplett schließen  *******
+* @param {object} objTemp Alle Parameter des jeweils ausgelösten Triggers und der dazugehörigen Jalousie
+*/
 function SetZeroBlind(objTemp) {
     if (logging) console.log(`${scriptname}: ${objTemp.name} // Set ZeroBlind`)
     objTemp.waitForZeroBlind = true
     setStateAsync(objTemp.pathParameter, 'L=100.5,L2=0')
 }
 
+/******* Ack auf True setzen  *******
+* @param {object} obj Objekt des Triggers
+*/
 async function SetAck(obj) {
     if(!obj.state.ack) {
         setStateAsync(obj.id, obj.state.val, true)
