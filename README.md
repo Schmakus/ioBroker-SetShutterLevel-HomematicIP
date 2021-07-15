@@ -1,3 +1,7 @@
+**Falls euch meine Arbeit gefällt :** <br>
+
+[![Paypal Donation](https://img.shields.io/badge/paypal-donate%20%7C%20spenden-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PK89K4V2RBU78&source=url)
+
 # ioBroker.SetShutterLevel-HomematicIP
 Verwendung von Homematic IP gesteuerten Jalousien in Kombination mit dem ShutterControl Adapter
 
