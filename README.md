@@ -1,5 +1,5 @@
 # ioBroker.SetShutterLevel-HomematicIP
-Verwendung von  of Homematic IP Shutters in combination with ShutterControl Adapter
+Verwendung von Homematic IP gesteuerten Jalousien in Kombination mit dem ShutterControl Adapter
 
 Da mir die Verwendung über Alias zu aufwendig erschien, habe ich dies wie folgt gelöst:
 
