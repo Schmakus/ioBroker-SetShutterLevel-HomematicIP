@@ -11,6 +11,10 @@ Da mir die Verwendung über Alias zu aufwendig erschien, habe ich dies wie folgt
 - Im Script definiert man für verschiedene "Level-Werte" zum einen die Behanghöhe der Jalousie, zum Anderen die Lamellenposition
 - Das Script setzt darauf hin einen Parameter-Wert, mit diesem dann der HomematicIP-Datenpunkt "COMBINED_PARAMETER" gesteuert wird
 
+Weitere Features:
+- Datenpunkt zur Vorgabe der Lamellenposiotion in %
+- Datenpunkt "All_Shutters" zur Steuerung aller Jalousien gemeinsam (Behanghöhe und Lamellenposition)
+
 Beispiele sind im Script schon angegeben. Es lassen sich beliebig viele Positionen setzen.
 Zudem gibt es einen weiteren Datenpunkt "BlindLevel". Mit diesem lassen sich nur die Lamellen verstellen. Ideal z.B. für die VIS o.ä.
 
