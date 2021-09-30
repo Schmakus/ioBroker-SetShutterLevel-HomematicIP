@@ -1,4 +1,4 @@
-const version = `v0.4`
+const version = `v0.5`
 const scriptname = `ioBroker-SetShutterLevel-HomematicIP`
 const constri = `Schmakus`
 
@@ -6,6 +6,11 @@ const constri = `Schmakus`
 //    Release Notes                         //
 //------------------------------------------//
 /*
+2021-09-30 v0.5
+    *Schmakus   - Info: Bei Steuerung auf 100% Behanghöhe fahren die Jalousien wieder ein Stück zurück auf 95%.
+                         Es scheint ein Problem des RPC Adapters oder der CCU zu sein.
+                 - Change: Bei Vorgabe von State = 100 oder State = 0 wird ab sofort der Datenpunkt LEVEL gesetzt. 
+
 2021-07-13 v0.4
     *Schmakus   - NEW: Zusätzliche Datenpunkte unter "All_Shutters" um alle Jalousien gleichzeitig verstellen zu können
                 - NEW: minimalen %-Wert der Behnanghöhe, bei der keine Lamellenverstellung mehr durchgeführt wird. Standard = 90%
@@ -33,6 +38,11 @@ const minLevelForSetBlinds = 90                         // % der Behanghöhe, ab
 //------------------------------------------//
 //    Parameter erstellen                 //
 //------------------------------------------//
+
+
+//******* ACHTUNG !!! */
+// Positions 0 und 100 stehen für komplett offen und geschlossen. Hier keine Parameter angeben!
+
 const arrShutters = [
     {
         name: 'Küche',
@@ -166,7 +176,7 @@ for (const shutter of arrShutters) {
 
 
     //Lamellen komplett schließen
-    shutter.SetZeroBlind = async function(){
+    shutter.SetZeroBlind = async function() {
         if (logging) console.log(`${scriptname}: ${this.name} // Set ZeroBlind`)
         this.waitForZeroBlind = true
         setStateAsync(this.pathParameter, 'L=100.5,L2=0')
@@ -177,6 +187,13 @@ for (const shutter of arrShutters) {
         if (logging) console.log(`${scriptname}: ${this.name} // Set level for Shutter/Blind:  ${this.parameter}`)
         setStateAsync(this.pathParameter, this.parameter)
     }
+
+    //Behanghöhe 0% oder 100% anfahren
+    shutter.SetLevel = async function(level) {
+        if (logging) console.log(`${scriptname}: ${this.name} // Set level for Shutter:  ${level}`)
+        setStateAsync(this.pathLevel, level)
+    }
+
 }
 
 let numStates = customStates.length;
@@ -219,16 +236,16 @@ async function CreateTrigger(arrShutters) {
                 objTemp.parameter = `L=${objTemp.positions[value][0]},L2=${objTemp.positions[value][1]}`
                 if(value > 0 && value < 100) {
                     //Lamellen in Zwischenpositionen zuerst schließen, dann Position anfahren
-                    objTemp.SetZeroBlind()  
+                    await objTemp.SetZeroBlind() 
                 } else {
                     //Datenpunkt setzen
-                    objTemp.SetShutter()   
+                    await objTemp.SetLevel(value)   
                 }
             } else {
                 //Parameter setzen
                 objTemp.parameter = `L=${objTemp.default[0]},L2=${objTemp.default[1]}`
                 //Datenpunkt setzen
-                objTemp.SetShutter()
+                await objTemp.SetShutter()
             }
         })
 
@@ -250,10 +267,10 @@ async function CreateTrigger(arrShutters) {
 
                 if(value > 0 && value < 100) {   
                     //Lamellen in Zwischenpositionen zuerst schließen, dann Position anfahren
-                    objTemp.SetZeroBlind()  
+                    await objTemp.SetZeroBlind()  
                 } else {
                     //Datenpunkt setzen
-                    objTemp.SetShutter()   
+                    await objTemp.SetShutter()   
                 }
             }else {
                 if (logging) console.log(`${scriptname}: ${objTemp.name} // Behanghöhe ist > ${minLevelForSetBlinds}%. Deshalb keine Lamellenverstellung`)
@@ -285,9 +302,11 @@ async function CreateTrigger(arrShutters) {
             if (logging) console.log(`${scriptname}: ${objTemp.name} // Process ist stable now`)
             if(objTemp.waitForZeroBlind) {
                 //Datenpunkt setzen
-                objTemp.SetShutter()
+                await objTemp.SetShutter()
                 objTemp.waitForZeroBlind = false
             }
         }) 
     })
 }
+
+
