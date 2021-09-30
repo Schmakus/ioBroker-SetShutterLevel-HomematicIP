@@ -7,9 +7,10 @@ const constri = `Schmakus`
 //------------------------------------------//
 /*
 2021-09-30 v0.5
-    *Schmakus   - Info: Bei Steuerung auf 100% Behanghöhe fahren die Jalousien wieder ein Stück zurück auf 95%.
-                         Es scheint ein Problem des RPC Adapters oder der CCU zu sein.
-                 - Change: Bei Vorgabe von State = 100 oder State = 0 wird ab sofort der Datenpunkt LEVEL gesetzt. 
+    *Schmakus   - Info: Wenn bei 100% Behanghöhe die Jalousie auf Ihrer Endposition bleiben soll, muss als Lamellenposition ebenfalls 100% eingetragen werden!
+                        Ansonsten fährt die Jalousie wieder ein Stück zurück.
+                - Diverse Optimierungen
+
 
 2021-07-13 v0.4
     *Schmakus   - NEW: Zusätzliche Datenpunkte unter "All_Shutters" um alle Jalousien gleichzeitig verstellen zu können
@@ -49,10 +50,10 @@ const arrShutters = [
         pathShutter: 'hm-rpc.1.00165A49924753.6',   //Pfad zum Channel der Jalousie
         positions: {
             0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
-            100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            100: [100,100],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,15],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             90:  [0,45],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
-            85:  [0,90],    //Jalousien komplett geschlossen, Lamellen Sichtschutz
+            85:  [2,90],    //Jalousien komplett geschlossen, Lamellen Sichtschutz
         },
         default: [0,0],     //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
         toAll: true,        //Soll diese Jalousie der Gruppe "All_Shutters" hinzugefügt werden? Ja = true
@@ -62,10 +63,10 @@ const arrShutters = [
         pathShutter: 'hm-rpc.1.00165A49924753.10',   //Pfad zum Channel der Jalousie
         positions: {
             0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
-            100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            100: [100,100],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,25],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             90:  [0,60],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
-            85:  [0,100],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
+            85:  [2,95],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
         },
         default: [0,0],     //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
         toAll: true,        //Soll diese Jalousie der Gruppe "All_Shutters" hinzugefügt werden? Ja = true
@@ -75,10 +76,10 @@ const arrShutters = [
         pathShutter: 'hm-rpc.1.00165A49924753.14',   //Pfad zum Channel der Jalousie
         positions: {
             0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
-            100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            100: [100,100],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,25],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             90:  [0,50],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
-            85:  [0,100],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
+            85:  [2,95],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
         },
         default: [0,0],     //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
         toAll: true,        //Soll diese Jalousie der Gruppe "All_Shutters" hinzugefügt werden? Ja = true
@@ -88,10 +89,10 @@ const arrShutters = [
         pathShutter: 'hm-rpc.1.00165A49A065F3.2',   //Pfad zum Channel der Jalousie
         positions: {
             0:   [0,0],     //Jalousien komplett geschlossen, Lamellen komplett geschlossen
-            100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
+            100: [100,100],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,25],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             90:  [0,50],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
-            85:  [0,100],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
+            85:  [2,95],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
         },
         default: [0,0],     //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
         toAll: true,        //Soll diese Jalousie der Gruppe "All_Shutters" hinzugefügt werden? Ja = true
@@ -104,7 +105,7 @@ const arrShutters = [
             100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,25],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             90:  [0,60],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
-            85:  [0,100],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
+            85:  [2,95],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
         },
         default: [0,0],     //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
         toAll: true,        //Soll diese Jalousie der Gruppe "All_Shutters" hinzugefügt werden? Ja = true
@@ -117,7 +118,7 @@ const arrShutters = [
             100: [100,0],   //Jalousien komplett geöffnet, Lamellenposition ignoriert
             95:  [0,25],    //Jalousien komplett geschlossen, Lamellen Sonnenschutz
             90:  [0,60],    //Jalousien komplett geschlossen, Lamellen geöffnet (Durchsicht)
-            85:  [0,100],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
+            85:  [2,95],   //Jalousien komplett geschlossen, Lamellen Sichtschutz       
         },
         default: [0,0],     //Default: Jalousien komplett geschlossen, Lamellen komplett geschlossen
         toAll: false,        //Soll diese Jalousie der Gruppe "All_Shutters" hinzugefügt werden? Ja = true
@@ -187,13 +188,6 @@ for (const shutter of arrShutters) {
         if (logging) console.log(`${scriptname}: ${this.name} // Set level for Shutter/Blind:  ${this.parameter}`)
         setStateAsync(this.pathParameter, this.parameter)
     }
-
-    //Behanghöhe 0% oder 100% anfahren
-    shutter.SetLevel = async function(level) {
-        if (logging) console.log(`${scriptname}: ${this.name} // Set level for Shutter:  ${level}`)
-        setStateAsync(this.pathLevel, level)
-    }
-
 }
 
 let numStates = customStates.length;
@@ -239,7 +233,7 @@ async function CreateTrigger(arrShutters) {
                     await objTemp.SetZeroBlind() 
                 } else {
                     //Datenpunkt setzen
-                    await objTemp.SetLevel(value)   
+                    await objTemp.SetShutter()   
                 }
             } else {
                 //Parameter setzen
